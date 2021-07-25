@@ -1,0 +1,4 @@
+.env
+lnd.conf
+.password
+__pycache__

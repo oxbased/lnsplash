@@ -1,0 +1,45 @@
+version: '3.7'
+
+services:
+                
+    lnd:
+        container_name: lnd
+        image: lnd
+        build: lnd
+        depends_on: [ ]
+        volumes:
+                - ${PWD}/lnd:/root/.lnd-conf
+                - "/opt/docker-lnd-data:/root/.lnd"
+        restart: on-failure
+        stop_grace_period: 5m30s
+        ports:
+            - "9735:9735"
+            - "$LND_REST_PORT:$LND_REST_PORT"
+            - "$LND_GRPC_PORT:$LND_GRPC_PORT"
+        networks:
+            default:
+                ipv4_address: $LND_IP
+        command: 
+            /bin/lnd --configfile=/root/.lnd-conf/lnd.conf --externalip=${EXTERNAL_IP} --alias=${ALIAS} --color="${COLOR}" 
+    app:
+
+        container_name: app
+        depends_on: [ lnd ]
+        build: ./app
+        ports: 
+            - "5000:5000"
+        volumes:
+            - ${PWD}/app:/app/app
+            - /opt/docker-lnd-data:/root/.lnd
+        networks:
+            default:
+                ipv4_address: "10.21.21.12"       
+
+networks:
+    default:
+        name: my_network
+        ipam:
+            driver: default
+            config:
+                - subnet: "$NETWORK_IP/24"
+
